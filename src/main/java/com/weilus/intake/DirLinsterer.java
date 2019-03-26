@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,16 +25,16 @@ public class DirLinsterer {
     public static ExecutorService executorService = Executors.newFixedThreadPool(50);
     public final static Map<String,Boolean> LOCKS = new ConcurrentHashMap<>();
 
-    public static void listener(LogTransforer transforer,String logDir,String posDir) throws IOException{
-        Path posdir = Paths.get(posDir),logdir = Paths.get(logDir);
-        if(Files.notExists(posdir))Files.createDirectories(posdir);
+    public static void listener(LogTransforer transforer,String logDir,String file) throws IOException{
+        String posDir = logDir.endsWith(File.separator) ? logDir+"pos/" : logDir+File.separator+"pos/";
+        Path logdir = Paths.get(logDir),posdir = Paths.get(posDir);
         if(Files.notExists(logdir))Files.createDirectories(logdir);
+        if(Files.notExists(posdir))Files.createDirectories(posdir);
         listener(logDir,(event) -> {
             Thread.currentThread().setName(event.context().toString());
             LOGGER.info("["+event.context()+"]文件发生了["+event.kind()+"]事件");
             String logpath = logDir.endsWith(File.separator) ? logDir+event.context() : logDir+File.separator+event.context();
-            String logpospath =posDir.endsWith(File.separator) ? posDir+event.context()+ ".pos" : posDir+File.separator+event.context()+ ".pos";
-            Path logPosPath = Paths.get(logpospath);
+            Path logPosPath = Paths.get(posDir+event.context()+ ".pos");
             if(ENTRY_CREATE.name().equals(event.kind().name())){
                 LogReader.writeEndPos(logPosPath,0L);
             }
@@ -44,6 +45,16 @@ public class DirLinsterer {
                     LOCKS.put(logpath,false);
                 }
             }
+        },(event)->{
+            if(null != file){
+                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+file);
+                try {
+                    return Files.list(Paths.get(logDir)).anyMatch(path-> matcher.matches(path));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return true;
         });
     }
 
@@ -54,7 +65,7 @@ public class DirLinsterer {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static void listener(String dir,Consumer<WatchEvent> consumer) throws IOException {
+    public static void listener(String dir, Consumer<WatchEvent> consumer, Predicate<WatchEvent> predicate) throws IOException {
         WatchService watcher = FileSystems.getDefault().newWatchService();
         Paths.get(dir).register(watcher,OVERFLOW,ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY);
         while(true){
@@ -62,6 +73,7 @@ public class DirLinsterer {
                 WatchKey watchKey = watcher.take();
                 List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
                 for(WatchEvent<?> event : watchEvents){
+                    if(predicate.test(event))
                     executorService.execute(()->consumer.accept(event));
                 }
                 watchKey.reset();

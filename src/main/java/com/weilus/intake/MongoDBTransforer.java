@@ -18,15 +18,17 @@ public class MongoDBTransforer implements LogTransforer{
 
     private MongoClient mongoClient;
     private MongoClientURI mongoClientURI;
-    public MongoDBTransforer(String uri) {
+    private String collection;
+    public MongoDBTransforer(String uri,String collection) {
         this.mongoClientURI = new MongoClientURI(uri);
         this.mongoClient = new MongoClient(mongoClientURI);
+        this.collection = collection;
     }
 
     @Override
     public void out(List<String> lines) {
         MongoDatabase mongoDatabase = mongoClient.getDatabase(mongoClientURI.getDatabase());
-        MongoCollection collection = mongoDatabase.getCollection("logs");
+        MongoCollection collection = mongoDatabase.getCollection(this.collection);
         List<Document> list = lines.stream()
                 .map(line->
                         new Document()

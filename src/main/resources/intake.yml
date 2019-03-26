@@ -1,0 +1,10 @@
+zuul:
+  path: /data/logs
+  mongo: mongodb://user:password@ip:port/database
+  collection: zuul
+  file: zuul.log.*
+order:
+  path: /etc/logs
+  mongo: mongodb://user:password@ip:port/database
+  collection: order
+  file: order.log.*

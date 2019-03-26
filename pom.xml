@@ -21,6 +21,11 @@
             <artifactId>mongo-java-driver</artifactId>
             <version>3.4.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.19</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${artifactId}</finalName>

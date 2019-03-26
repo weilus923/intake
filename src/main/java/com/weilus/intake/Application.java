@@ -1,11 +1,16 @@
 package com.weilus.intake;
 
 
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 /**
  * Created by liutq on 2019/3/21.
@@ -14,14 +19,33 @@ public class Application {
     public static final Logger LOGGER = Logger.getLogger(Application.class.getSimpleName());
 
     public static void main(String[] args) throws IOException {
-        Optional<String> mongo = Stream.of(args).filter(arg->arg.startsWith("mongo=")).findFirst();
-        if(!mongo.isPresent())LOGGER.log(Level.WARNING,"mongo: 连接uri未设置 例如: mongo=mongodb://user:password@ip:port/database");
-        Optional<String> path = Stream.of(args).filter(arg->arg.startsWith("logPath=")).findFirst();
-        if(!path.isPresent())LOGGER.log(Level.WARNING,"logPath: 日志目录未设置 例如: logPath=/data/logs");
-        if(mongo.isPresent() && path.isPresent()) {
-            Optional<String> pospath = Stream.of(args).filter(arg -> arg.startsWith("posPath=")).findFirst();
-            String posPath = pospath.isPresent() ? pospath.get().split("=")[1] : System.getProperty("user.dir");
-            DirLinsterer.listener(new MongoDBTransforer(mongo.get().split("=")[1]), path.get().split("=")[1],posPath);
+        if(args.length > 0){
+           Path conf = Paths.get(args[0]);
+            if(Files.exists(conf)){
+                Yaml yaml = new Yaml();
+                Map<String,Map<String,String>> config = yaml.load(new FileInputStream(conf.toFile()));
+                config.entrySet().stream()
+                        .filter(e->{
+                            Map<String,String> transfoer = e.getValue();
+                            return transfoer.containsKey("mogo")
+                                    && transfoer.containsKey("collection")
+                                    && transfoer.containsKey("path")
+                                    && transfoer.containsKey("file");
+                        })
+                        .forEach(t->{
+                            Map<String,String> transfoer = t.getValue();
+                            try {
+                                LogTransforer transforer = new MongoDBTransforer(transfoer.get("mongo"),transfoer.get("collection"));
+                                DirLinsterer.listener(transforer,transfoer.get("path"),transfoer.get("file"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            }else {
+                LOGGER.log(Level.WARNING,"配置文件不存在");
+            }
+        }else {
+            LOGGER.log(Level.WARNING,"请指定配置文件, shell>java -jar intake.jar /data/intake/etc/intake.yml");
         }
     }
 }
