@@ -32,9 +32,8 @@ public class DirLinsterer {
         if(Files.notExists(posdir))Files.createDirectories(posdir);
         listener(logDir,(event) -> {
             Thread.currentThread().setName(event.context().toString());
-            LOGGER.info("["+event.context()+"]文件发生了["+event.kind()+"]事件");
-            String logpath = logDir.endsWith(File.separator) ? logDir+event.context() : logDir+File.separator+event.context();
-            Path logPosPath = Paths.get(posDir+event.context()+ ".pos");
+            String logpath = getLogPath(logDir,event);
+            Path logPosPath = Paths.get(posDir+"pos-"+event.context()+ ".data");
             if(ENTRY_CREATE.name().equals(event.kind().name())){
                 LogReader.writeEndPos(logPosPath,0L);
             }
@@ -46,6 +45,7 @@ public class DirLinsterer {
                 }
             }
         },(event)->{
+            if(Paths.get(getLogPath(logDir,event)).toFile().isDirectory())return false;
             if(null != file){
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+file);
                 try {
@@ -58,6 +58,10 @@ public class DirLinsterer {
         });
     }
 
+    public static String getLogPath(String logDir,WatchEvent event){
+        return logDir.endsWith(File.separator) ? logDir+event.context() : logDir+File.separator+event.context();
+    }
+
     /**
      * 监听目录日志文件
      * @param dir
@@ -68,18 +72,22 @@ public class DirLinsterer {
     public static void listener(String dir, Consumer<WatchEvent> consumer, Predicate<WatchEvent> predicate) throws IOException {
         WatchService watcher = FileSystems.getDefault().newWatchService();
         Paths.get(dir).register(watcher,OVERFLOW,ENTRY_CREATE,ENTRY_DELETE,ENTRY_MODIFY);
-        while(true){
-            try {
-                WatchKey watchKey = watcher.take();
-                List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
-                for(WatchEvent<?> event : watchEvents){
-                    if(predicate.test(event))
-                    executorService.execute(()->consumer.accept(event));
+        executorService.execute(()->{
+            Thread.currentThread().setName("listenerDir");
+            LOGGER.log(Level.INFO,"start listenerDir :"+ dir);
+            while(true){
+                try {
+                    WatchKey watchKey = watcher.take();
+                    List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
+                    for(WatchEvent<?> event : watchEvents){
+                        if(predicate.test(event))
+                            executorService.execute(()->consumer.accept(event));
+                    }
+                    watchKey.reset();
+                }catch (Exception e){
+                    LOGGER.log(Level.FINER,e.getMessage());
                 }
-                watchKey.reset();
-            }catch (Exception e){
-                LOGGER.log(Level.FINER,e.getMessage());
             }
-        }
+        });
     }
 }

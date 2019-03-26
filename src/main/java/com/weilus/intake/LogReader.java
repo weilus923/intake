@@ -7,14 +7,16 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * Created by liutq on 2019/3/22.
  */
 public class LogReader {
-
+    static Logger LOGGER = Logger.getLogger(LogReader.class.getSimpleName());
     public static void readLastLine(Path log_path, Path logpospath, Consumer<List<String>> consumer){
+        LOGGER.info("读取日志文件: "+log_path.getFileName());
         long start = readStartPos(logpospath);
         long end = start;
         try (
@@ -37,13 +39,16 @@ public class LogReader {
 
     public static void writeEndPos(Path logpospath,Long end){
         if(Files.notExists(logpospath)){
+            LOGGER.info("文件不存在: "+logpospath);
             try {
                 Files.createFile(logpospath);
+                LOGGER.info("创建文件: "+logpospath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         try {
+            LOGGER.info("写入文件: "+logpospath+"  >>"+end);
             Files.write(logpospath,String.valueOf(end).getBytes());
         } catch (IOException e) {
             e.printStackTrace();
