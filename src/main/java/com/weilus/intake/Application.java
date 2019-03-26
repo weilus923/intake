@@ -19,7 +19,6 @@ public class Application {
     public static final Logger LOGGER = Logger.getLogger(Application.class.getSimpleName());
 
     public static void main(String[] args) throws IOException {
-        args = new String[]{"D:\\workspace\\intake\\src\\main\\resources\\intake.yml"};
         if(args.length > 0){
            Path conf = Paths.get(args[0]);
             if(Files.exists(conf)){
@@ -35,7 +34,6 @@ public class Application {
                         })
                         .forEach(t->{
                             Map<String,String> transfoer = t.getValue();
-                            System.out.println(transfoer);
                             try {
                                 LogTransforer transforer = new MongoDBTransforer(transfoer.get("mongo"),transfoer.get("collection"));
                                 DirLinsterer.listener(transforer,transfoer.get("path"),transfoer.get("file"));
