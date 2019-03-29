@@ -7,5 +7,5 @@ import java.util.List;
  */
 public interface LogTransforer {
 
-    void out(List<String> lines);
+    void out(List<String> lines,String source);
 }

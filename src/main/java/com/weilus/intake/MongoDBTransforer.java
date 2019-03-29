@@ -21,15 +21,15 @@ public class MongoDBTransforer implements LogTransforer{
 
     private MongoClient mongoClient;
     private MongoClientURI mongoClientURI;
-    private String collection;
+    private String collection = "intake";
     public MongoDBTransforer(String uri,String collection) {
         this.mongoClientURI = new MongoClientURI(uri);
         this.mongoClient = new MongoClient(mongoClientURI);
-        this.collection = collection;
+        if(collection != null && collection.length() > 0)this.collection = collection;
     }
 
     @Override
-    public void out(List<String> lines) {
+    public void out(List<String> lines,String source) {
         MongoDatabase mongoDatabase = mongoClient.getDatabase(mongoClientURI.getDatabase());
         MongoCollection collection = mongoDatabase.getCollection(this.collection);
         List<Document> list = lines.stream()
@@ -40,6 +40,7 @@ public class MongoDBTransforer implements LogTransforer{
                                 .append("spanid",LogParserUtil.getMatcher(REG_SELTH,line))
                                 .append("logger",LogParserUtil.getMatcher(REG_CLZZ,line))
                                 .append("message",LogParserUtil.parseMsg(line))
+                                .append("source",source)
         ).collect(Collectors.toList());
         collection.insertMany(list);
     }

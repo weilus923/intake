@@ -5,8 +5,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Level;
@@ -18,12 +18,9 @@ import java.util.logging.Logger;
 public class Application {
     public static final Logger LOGGER = Logger.getLogger(Application.class.getSimpleName());
 
-    public static void main(String[] args) throws IOException {
-        if(args.length > 0){
-           Path conf = Paths.get(args[0]);
-            if(Files.exists(conf)){
-                Yaml yaml = new Yaml();
-                Map<String,Map<String,String>> config = yaml.load(new FileInputStream(conf.toFile()));
+    public static void main(String[] args){
+        Map<String,Map<String,String>> config=loadConfig(args);
+        if(config != null){
                 config.entrySet().stream()
                         .filter(e->{
                             Map<String,String> transfoer = e.getValue();
@@ -33,19 +30,38 @@ public class Application {
                                     && transfoer.containsKey("file");
                         })
                         .forEach(t->{
-                            Map<String,String> transfoer = t.getValue();
+                            Map<String,String> conf = t.getValue();
                             try {
-                                LogTransforer transforer = new MongoDBTransforer(transfoer.get("mongo"),transfoer.get("collection"));
-                                DirLinsterer.listener(transforer,transfoer.get("path"),transfoer.get("file"));
+                                LogTransforer transforer = new MongoDBTransforer(conf.get("mongo"),conf.get("collection"));
+                                String logDir = conf.get("path");
+                                String file = conf.get("file");
+                                String source =conf.get("source");
+                                DirLinsterer.listener(transforer,logDir,file,source);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         });
             }else {
-                LOGGER.log(Level.WARNING,"配置文件不存在");
+                LOGGER.log(Level.WARNING,"请指定配置文件, shell>java -jar intake.jar /data/intake/etc/intake.yml");
             }
-        }else {
-            LOGGER.log(Level.WARNING,"请指定配置文件, shell>java -jar intake.jar /data/intake/etc/intake.yml");
         }
+
+
+    public static Map<String,Map<String,String>> loadConfig(String[] args){
+        Map<String,Map<String,String>> config=null;
+        if(args.length > 0 && Files.exists(Paths.get(args[0]))) {
+            try (InputStream is = new FileInputStream(Paths.get(args[0]).toFile())){
+                config = new Yaml().load(is);
+            }catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            try (InputStream is = ClassLoader.getSystemResourceAsStream("intake.yml")){
+                config = new Yaml().load(is);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return config;
     }
 }

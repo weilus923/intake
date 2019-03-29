@@ -25,22 +25,32 @@ public class DirLinsterer {
     public static ExecutorService executorService = Executors.newFixedThreadPool(50);
     public final static Map<String,Boolean> LOCKS = new ConcurrentHashMap<>();
 
-    public static void listener(LogTransforer transforer,String logDir,String file) throws IOException{
+    /**
+     * @param transforer 文件摄取 写出对象
+     * @param logDir     文件摄取的目录
+     * @param file       文件匹配的parrten  匹配的文件才执行摄取内容写出  eureka.log.*
+     * @param source     写出时标记来源
+     */
+    public static void listener(LogTransforer transforer,String logDir,String file,String source) throws IOException{
         String posDir = logDir.endsWith(File.separator) ? logDir+"pos/" : logDir+File.separator+"pos/";
         Path logdir = Paths.get(logDir),posdir = Paths.get(posDir);
         if(Files.notExists(logdir))Files.createDirectories(logdir);
         if(Files.notExists(posdir))Files.createDirectories(posdir);
+
         listener(logDir,(event) -> {
             Thread.currentThread().setName(event.context().toString());
             String logpath = getLogPath(logDir,event);
             Path logPosPath = Paths.get(posDir+"pos-"+event.context()+ ".data");
+            // 摄取目标 被创建
             if(ENTRY_CREATE.name().equals(event.kind().name())){
                 LogReader.writeEndPos(logPosPath,0L);
             }
+            // 摄取目标 存在新内容写入
             if(ENTRY_MODIFY.name().equals(event.kind().name())){
                 if(!LOCKS.containsKey(logpath))LOCKS.put(logpath,false);
+                String _source = source != null && source.length() >0 ? source : event.context().toString();
                 synchronized (LOCKS.get(logpath)){
-                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines) -> transforer.out(lines));
+                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines) -> transforer.out(lines,_source));
                     LOCKS.put(logpath,false);
                 }
             }
@@ -64,10 +74,10 @@ public class DirLinsterer {
 
     /**
      * 监听目录日志文件
-     * @param dir
-     * @param consumer
+     * @param dir 监听目录
+     * @param consumer 消费事件
+     * @param predicate 是否执行消费
      * @throws IOException
-     * @throws InterruptedException
      */
     public static void listener(String dir, Consumer<WatchEvent> consumer, Predicate<WatchEvent> predicate) throws IOException {
         WatchService watcher = FileSystems.getDefault().newWatchService();
