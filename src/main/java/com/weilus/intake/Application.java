@@ -25,7 +25,7 @@ public class Application {
                         .filter(e->{
                             Map<String,String> transfoer = e.getValue();
                             return transfoer.containsKey("mongo")
-                                    && transfoer.containsKey("collection")
+                                    && transfoer.containsKey("source")
                                     && transfoer.containsKey("path")
                                     && transfoer.containsKey("file");
                         })

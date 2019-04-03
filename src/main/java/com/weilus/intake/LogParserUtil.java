@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  */
 public class LogParserUtil {
 
-    public static final String REG_DATE_YMDHMSS = "(^\\d{4}(\\-\\d{2})+[\\s](\\d{2}\\:)+\\d{2}\\.\\d{0,3})";
+    public static final String REG_DATE_YMDHMS_SSS = "(^\\d{4}(\\-\\d{2})+[\\s](\\d{2}\\:)+\\d{2}\\.\\d{0,3})";
     public static final String REG_DATE_YMDHMS = "(^\\d{4}(\\-\\d{2})+[\\s](\\d{2}\\:)+\\d{2})";
     public static final String REG_LEVEL = "(DEBUG|WARN|INFO|ERROR)";
     public static final String REG_SELTH = "(\\[(.+?)\\])";
