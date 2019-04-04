@@ -7,15 +7,7 @@
     <groupId>weilus.intake</groupId>
     <artifactId>intake</artifactId>
     <version>1.0-SNAPSHOT</version>
-
-
-
     <dependencies>
-        <!--<dependency>-->
-            <!--<groupId>org.springframework.shell</groupId>-->
-            <!--<artifactId>spring-shell-starter</artifactId>-->
-            <!--<version>2.0.1.RELEASE</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
@@ -59,6 +51,27 @@
                 </executions>
 
             </plugin>
+
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <maintainer>weilus923</maintainer>
+                    <dockerHost>http://192.168.198.128:2375</dockerHost>
+                    <imageName>weilus923/${project.artifactId}</imageName>
+                    <baseImage>openjdk:8-jdk-alpine</baseImage>
+                    <volumes><volume>/intake/conf</volume></volumes>
+                    <entryPoint>["java","-Djava.security.egd=file:/dev/./urandom", "-jar", "/${project.build.finalName}.jar","/intake/conf/intake.yml"]</entryPoint>
+                    <resources>
+                        <resource>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 </project>

@@ -56,6 +56,8 @@ public class DirLinsterer {
             }
         },(event)->{
             if(Paths.get(getLogPath(logDir,event)).toFile().isDirectory())return false;
+            String fileName = event.context().toString();
+            if(fileName.startsWith("pos-") && fileName.endsWith(".data"))return false;
             if(null != file){
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+file);
                 try {

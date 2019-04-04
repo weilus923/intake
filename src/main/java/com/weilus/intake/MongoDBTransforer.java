@@ -45,7 +45,7 @@ public class MongoDBTransforer implements LogTransforer{
         collection.insertMany(list);
     }
 
-    static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+    static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     public static Date toDate(String time){
         try {
             return SIMPLE_DATE_FORMAT.parse(time);
