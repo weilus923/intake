@@ -55,17 +55,14 @@ public class DirLinsterer {
                 }
             }
         },(event)->{
-            if(Paths.get(getLogPath(logDir,event)).toFile().isDirectory())return false;
+            Path logPath = Paths.get(getLogPath(logDir,event));
+            if(logPath.toFile().isDirectory())return false;
             String fileName = event.context().toString();
             if(fileName.startsWith("pos-") && fileName.endsWith(".data"))return false;
-            if(fileName.endsWith(".swp"))return false;
+            if(fileName.endsWith(".swp") || fileName.endsWith(".swx"))return false;
             if(null != file){
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+file);
-                try {
-                    return Files.list(Paths.get(logDir)).anyMatch(path-> matcher.matches(path));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                return matcher.matches(logPath);
             }
             return true;
         });
