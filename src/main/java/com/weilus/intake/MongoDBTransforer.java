@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.weilus.intake.LogParserUtil.*;
@@ -18,7 +19,7 @@ import static com.weilus.intake.LogParserUtil.*;
  * Created by liutq on 2019/3/21.
  */
 public class MongoDBTransforer implements LogTransforer{
-
+    public static final Logger LOGGER = Logger.getLogger(MongoDBTransforer.class.getName());
     private MongoClient mongoClient;
     private MongoClientURI mongoClientURI;
     private String collection = "intake";
@@ -33,15 +34,22 @@ public class MongoDBTransforer implements LogTransforer{
         MongoDatabase mongoDatabase = mongoClient.getDatabase(mongoClientURI.getDatabase());
         MongoCollection collection = mongoDatabase.getCollection(this.collection);
         List<Document> list = lines.stream()
-                .map(line->
-                        new Document()
-                                .append("time",toDate(LogParserUtil.getMatcher(REG_DATE_YMDHMS_SSS,line)))
-                                .append("level",LogParserUtil.getMatcher(REG_LEVEL,line))
-                                .append("spanid",LogParserUtil.getMatcher(REG_SELTH,line))
-                                .append("logger",LogParserUtil.getMatcher(REG_CLZZ,line))
-                                .append("message",LogParserUtil.parseMsg(line))
-                                .append("source",source)
-        ).collect(Collectors.toList());
+                .map(line-> {
+                    try {
+                        Document doc = new Document()
+                                .append("time", toDate(LogParserUtil.getMatcher(REG_DATE_YMDHMS_SSS, line)))
+                                .append("level", LogParserUtil.getMatcher(REG_LEVEL, line))
+                                .append("spanid", LogParserUtil.getMatcher(REG_SELTH, line))
+                                .append("logger", LogParserUtil.getMatcher(REG_CLZZ, line))
+                                .append("message", LogParserUtil.parseMsg(line))
+                                .append("source", source);
+                        return doc;
+                    }catch (Exception e){
+                        LOGGER.finer("parse error: "+ line);
+                    }return null;
+                })
+                .filter(doc->doc != null)
+                .collect(Collectors.toList());
         collection.insertMany(list);
     }
 

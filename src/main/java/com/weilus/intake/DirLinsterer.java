@@ -62,7 +62,9 @@ public class DirLinsterer {
             if(fileName.endsWith(".swp") || fileName.endsWith(".swx"))return false;
             if(null != file){
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+file);
-                return matcher.matches(logPath);
+                boolean flag =  matcher.matches(logPath);
+                if(!flag)LOGGER.info("不符合["+file+"]格式: =>"+logPath.toString());
+                return flag;
             }
             return true;
         });
@@ -92,6 +94,7 @@ public class DirLinsterer {
                     for(WatchEvent<?> event : watchEvents){
                         if(predicate.test(event))
                             executorService.execute(()->consumer.accept(event));
+                        else LOGGER.info("被排除==>"+event.context());
                     }
                     watchKey.reset();
                 }catch (Exception e){
