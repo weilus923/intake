@@ -94,7 +94,6 @@ public class DirLinsterer {
                     for(WatchEvent<?> event : watchEvents){
                         if(predicate.test(event))
                             executorService.execute(()->consumer.accept(event));
-                        else LOGGER.info("被排除==>"+event.context());
                     }
                     watchKey.reset();
                 }catch (Exception e){

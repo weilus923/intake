@@ -50,7 +50,7 @@ public class MongoDBTransforer implements LogTransforer{
                 })
                 .filter(doc->doc != null)
                 .collect(Collectors.toList());
-        collection.insertMany(list);
+        if(list.size() > 0)collection.insertMany(list);
     }
 
     static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
