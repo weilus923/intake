@@ -20,6 +20,12 @@ public class LogParserUtil {
     static final SimpleDateFormat SIMPLE_DATE_FORMAT_SSS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     static final SimpleDateFormat SIMPLE_DATE_FORMAT_HMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    /**
+     * 解析日志时间
+     * @param line
+     * @return
+     * @throws ParseException
+     */
     public static Date parseTime(String line) throws ParseException {
         Matcher matcher = Pattern.compile(REG_DATE_YMDHMS_SSS).matcher(line);
         if(matcher.find()){
@@ -46,7 +52,7 @@ public class LogParserUtil {
     public static boolean isExceptionLine(String line){
         String level = getMatcher(REG_LEVEL,line);
         if("ERROR".equalsIgnoreCase(level))return true;
-        if(null == level && line.startsWith("\tat"))return true;
+        if(null == level || line.startsWith("\tat"))return true;
         return false;
     }
 

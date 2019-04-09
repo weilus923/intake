@@ -29,7 +29,7 @@ public class LogReader {
             int batchNum = 0;
             do {
                 batchNum++;
-                lines = reader.lines().limit(20).collect(Collectors.toList());
+                lines = reader.lines().limit(300).collect(Collectors.toList());
                 if(lines.size() > 0) {
                     String lastLine = lines.get(lines.size() - 1);
                     if (LogParserUtil.isExceptionLine(lastLine)) getLastExpetionLines(reader, lines);
