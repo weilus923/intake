@@ -6,9 +6,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -37,7 +34,7 @@ public class MongoDBTransforer implements LogTransforer{
                 .map(line-> {
                     try {
                         Document doc = new Document()
-                                .append("time", toDate(LogParserUtil.getMatcher(REG_DATE_YMDHMS_SSS, line)))
+                                .append("time",LogParserUtil.parseTime(line))
                                 .append("level", LogParserUtil.getMatcher(REG_LEVEL, line))
                                 .append("spanid", LogParserUtil.getMatcher(REG_SELTH, line))
                                 .append("logger", LogParserUtil.getMatcher(REG_CLZZ, line))
@@ -45,7 +42,7 @@ public class MongoDBTransforer implements LogTransforer{
                                 .append("source", source);
                         return doc;
                     }catch (Exception e){
-                        LOGGER.finer("parse error: "+ line);
+                        LOGGER.info("parse error: "+ line);
                     }return null;
                 })
                 .filter(doc->doc != null)
@@ -53,13 +50,5 @@ public class MongoDBTransforer implements LogTransforer{
         if(list.size() > 0)collection.insertMany(list);
     }
 
-    static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    public static Date toDate(String time){
-        try {
-            return SIMPLE_DATE_FORMAT.parse(time);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+
 }

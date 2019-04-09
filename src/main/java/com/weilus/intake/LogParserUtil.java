@@ -1,5 +1,8 @@
 package com.weilus.intake;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +17,20 @@ public class LogParserUtil {
     public static final String REG_SELTH = "(\\[(.+?)\\])";
     public static final String REG_CLZZ = "((\\w+\\.){2,}\\w+)";
 
+    static final SimpleDateFormat SIMPLE_DATE_FORMAT_SSS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    static final SimpleDateFormat SIMPLE_DATE_FORMAT_HMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    public static Date parseTime(String line) throws ParseException {
+        Matcher matcher = Pattern.compile(REG_DATE_YMDHMS_SSS).matcher(line);
+        if(matcher.find()){
+            return SIMPLE_DATE_FORMAT_SSS.parse(matcher.group(1));
+        }
+        matcher = Pattern.compile(REG_DATE_YMDHMS).matcher(line);
+        if(matcher.find()){
+            return SIMPLE_DATE_FORMAT_HMS.parse(matcher.group(1));
+        }
+        return null;
+    }
 
     public static String getMatcher(String regex, String source) {
         Matcher matcher = Pattern.compile(regex).matcher(source);
@@ -24,4 +41,7 @@ public class LogParserUtil {
     public static String parseMsg(String source){
         return source.substring(source.indexOf(":",20)+1);
     }
+
+
+
 }
