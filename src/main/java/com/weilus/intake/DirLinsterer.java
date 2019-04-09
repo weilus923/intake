@@ -50,7 +50,7 @@ public class DirLinsterer {
                 if(!LOCKS.containsKey(logpath))LOCKS.put(logpath,false);
                 String _source = source != null && source.length() >0 ? source : event.context().toString();
                 synchronized (LOCKS.get(logpath)){
-                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines) -> transforer.out(lines,_source));
+                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines,num) -> transforer.out(lines,_source));
                     LOCKS.put(logpath,false);
                 }
             }

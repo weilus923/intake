@@ -38,6 +38,18 @@ public class LogParserUtil {
         return null;
     }
 
+    /**
+     * 是否是异常信息
+     * @param line
+     * @return
+     */
+    public static boolean isExceptionLine(String line){
+        String level = getMatcher(REG_LEVEL,line);
+        if("ERROR".equalsIgnoreCase(level))return true;
+        if(null == level && line.startsWith("\tat"))return true;
+        return false;
+    }
+
     public static String parseMsg(String source){
         return source.substring(source.indexOf(":",20)+1);
     }
