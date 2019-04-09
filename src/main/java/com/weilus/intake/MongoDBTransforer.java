@@ -52,7 +52,10 @@ public class MongoDBTransforer implements LogTransforer{
                         if(i++ < lines.size()) {
                             nextLine = lines.get(i);
                             if (LogParserUtil.isExceptionLine(nextLine)) stacktrace.add(nextLine);
-                            else break getStacktrace;
+                            else {
+                                i--;
+                                break getStacktrace;
+                            }
                         }else break;
                     } while (true);
                     doc.append("exception", stacktrace);
