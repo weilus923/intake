@@ -1,5 +1,6 @@
 package com.weilus.intake;
 
+import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 
 /**
@@ -14,14 +15,16 @@ public class IntakeProperties {
     private String path;
     private String file;
     private String source;
+    private SimpleDateFormat dateFormat;
     private LinkedHashMap<String,String> pattern;
 
     public IntakeProperties() {
     }
 
-    public IntakeProperties(String path, String file, String source, LinkedHashMap<String, String> pattern) {
+    public IntakeProperties(String path, String file, String source,String timeFormat, LinkedHashMap<String, String> pattern) {
         this.path = path;
         this.file = file;
+        this.dateFormat = new SimpleDateFormat(timeFormat);
         this.source = source;
         this.pattern = pattern;
     }
@@ -56,5 +59,9 @@ public class IntakeProperties {
 
     public void setPattern(LinkedHashMap<String, String> pattern) {
         this.pattern = pattern;
+    }
+
+    public SimpleDateFormat getDateFormat() {
+        return dateFormat;
     }
 }

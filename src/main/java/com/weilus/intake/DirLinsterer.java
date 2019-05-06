@@ -29,7 +29,6 @@ public class DirLinsterer {
      * @param transforer 文件摄取 写出对象
      */
     public static void listener(LogTransforer transforer,IntakeProperties properties) throws IOException{
-
         String posDir = properties.getPath().endsWith(File.separator) ? properties.getPath()+"pos/" : properties.getPath()+File.separator+"pos/";
         Path logdir = Paths.get(properties.getPath()),posdir = Paths.get(posDir);
         if(Files.notExists(logdir))Files.createDirectories(logdir);
@@ -48,7 +47,7 @@ public class DirLinsterer {
                 if(!LOCKS.containsKey(logpath))LOCKS.put(logpath,false);
                 String _source = properties.getSource() != null && properties.getSource().length() >0 ? properties.getSource() : event.context().toString();
                 synchronized (LOCKS.get(logpath)){
-                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines,num) -> transforer.out(lines,_source,properties.getPattern()));
+                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines,num) -> transforer.out(lines));
                     LOCKS.put(logpath,false);
                 }
             }

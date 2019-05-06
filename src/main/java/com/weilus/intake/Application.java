@@ -29,7 +29,8 @@ public class Application {
                                     && transfoer.containsKey("source")
                                     && transfoer.containsKey("path")
                                     && transfoer.containsKey("file")
-                                    && transfoer.containsKey("pattern");
+                                    && transfoer.containsKey("pattern")
+                                    && transfoer.containsKey("time_format");
                         })
                         .forEach(e->{
                             Map<String,Object> conf = (Map<String, Object>) e.getValue();
@@ -39,9 +40,10 @@ public class Application {
                                 String path = String.valueOf(conf.get("path"));
                                 String file = String.valueOf(conf.get("file"));
                                 String source = String.valueOf(conf.get("source"));
+                                String time_format = String.valueOf(conf.get("time_format"));
                                 LinkedHashMap<String,String> pattern = (LinkedHashMap<String, String>) conf.get("pattern");
-                                LogTransforer transforer = new MongoDBTransforer(mongo,collection);
-                                IntakeProperties properties = new IntakeProperties(path,file,source,pattern);
+                                IntakeProperties properties = new IntakeProperties(path,file,source,time_format,pattern);
+                                LogTransforer transforer = new MongoDBTransforer(mongo,collection,properties);
                                 DirLinsterer.listener(transforer,properties);
                             } catch (IOException ex) {
                                 ex.printStackTrace();

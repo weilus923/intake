@@ -7,7 +7,6 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -21,33 +20,35 @@ public class MongoDBTransforer implements LogTransforer{
     private MongoClient mongoClient;
     private MongoClientURI mongoClientURI;
     private String collection = "intake";
+    private IntakeProperties properties;
 
     public MongoDBTransforer() {
     }
 
-    public MongoDBTransforer(String uri, String collection) {
+    public MongoDBTransforer(String uri, String collection,IntakeProperties properties) {
         this.mongoClientURI = new MongoClientURI(uri);
         this.mongoClient = new MongoClient(mongoClientURI);
         if(collection != null && collection.length() > 0)this.collection = collection;
+        this.properties = properties;
     }
 
     @Override
-    public void out(List<String> lines, String source, LinkedHashMap<String,String> pattern) {
+    public void out(List<String> lines) {
         MongoDatabase mongoDatabase = mongoClient.getDatabase(mongoClientURI.getDatabase());
         MongoCollection collection = mongoDatabase.getCollection(this.collection);
-        List<Document> list = trans(lines,source,pattern);
+        List<Document> list = trans(lines);
         if(list.size() > 0)collection.insertMany(list);
     }
 
 
-    public List<Document> trans(List<String> lines,String source, LinkedHashMap<String,String> pattern){
+    public List<Document> trans(List<String> lines){
         List<Document> result = new ArrayList<>();
         if(null != lines) {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
-                Document doc = trans(line,pattern);
+                Document doc = trans(line);
                 if(doc == null)continue;
-                else doc.append("source", source);
+                else doc.append("source", properties.getSource());
                 if (isErrorDoc(doc)) {
                     String nextLine;
                     List<String> stacktrace = new ArrayList<>();
@@ -70,15 +71,17 @@ public class MongoDBTransforer implements LogTransforer{
         return result;
     }
 
-    public Document trans(String line,LinkedHashMap<String,String> pattern){
+    public Document trans(String line){
             Document doc =  new Document();
-            String patterns = pattern.values().stream().reduce((p1,p2)->p1+p2).get();
+            String patterns = properties.getPattern().values().stream().reduce((p1,p2)->p1+p2).get();
             Matcher matcher = Pattern.compile(patterns).matcher(line);
-            List<String> keys = new ArrayList<>(pattern.keySet());
+            List<String> keys = new ArrayList<>(properties.getPattern().keySet());
             if(matcher.find()){
                 try {
                     for(int i = 1;i <= matcher.groupCount(); i++){
-                        doc.append(keys.get(i-1),matcher.group(i));
+                        String key = keys.get(i-1),value = matcher.group(i);
+                        if("time".equalsIgnoreCase(key))doc.append(key,properties.getDateFormat().parse(value));
+                        else  doc.append(key,value);
                     }
                     return doc;
                 }catch (Exception e){
