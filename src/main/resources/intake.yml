@@ -4,6 +4,14 @@ zuul:
 #  collection: zuul  # collection default 'intake' may be create on mongoDB
   source: zuul
   file: zuul.log.*
+  time_format: yyyy-MM-dd HH:mm:ss.SSS
+  pattern:
+    time: "(^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\.\\d{3,3})\\s+"
+    level: "(DEBUG|WARN|INFO|ERROR)\\s+"
+    selth: "\\[(.*?)\\]"
+    thread: ".*\\[\\s+(.*?)\\]"
+    logger: "\\s+(.*?)\\s+"
+    message: "\\:\\s+(.*?)\\\n$"
 order:
   path: E:\data\logs
   mongo: mongodb://weilua:weilus@192.168.198.128:27017/test

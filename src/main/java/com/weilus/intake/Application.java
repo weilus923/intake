@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,36 +20,42 @@ public class Application {
     public static final Logger LOGGER = Logger.getLogger(Application.class.getSimpleName());
 
     public static void main(String[] args){
-        Map<String,Map<String,String>> config=loadConfig(args);
+        Map<String,Object> config=loadConfig(args);
         if(config != null){
                 config.entrySet().stream()
                         .filter(e->{
-                            Map<String,String> transfoer = e.getValue();
+                            Map<String,Object> transfoer = (Map<String,Object>) e.getValue();
                             return transfoer.containsKey("mongo")
                                     && transfoer.containsKey("source")
                                     && transfoer.containsKey("path")
-                                    && transfoer.containsKey("file");
+                                    && transfoer.containsKey("file")
+                                    && transfoer.containsKey("pattern");
                         })
-                        .forEach(t->{
-                            Map<String,String> conf = t.getValue();
+                        .forEach(e->{
+                            Map<String,Object> conf = (Map<String, Object>) e.getValue();
                             try {
-                                LogTransforer transforer = new MongoDBTransforer(conf.get("mongo"),conf.get("collection"));
-                                String logDir = conf.get("path");
-                                String file = conf.get("file");
-                                String source =conf.get("source");
-                                DirLinsterer.listener(transforer,logDir,file,source);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                                String mongo = String.valueOf(conf.get("mongo"));
+                                String collection = conf.containsKey("collection") ? String.valueOf(conf.get("collection")) : null;
+                                String path = String.valueOf(conf.get("path"));
+                                String file = String.valueOf(conf.get("file"));
+                                String source = String.valueOf(conf.get("source"));
+                                LinkedHashMap<String,String> pattern = (LinkedHashMap<String, String>) conf.get("pattern");
+                                LogTransforer transforer = new MongoDBTransforer(mongo,collection);
+                                IntakeProperties properties = new IntakeProperties(path,file,source,pattern);
+                                DirLinsterer.listener(transforer,properties);
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
                             }
                         });
+                LOGGER.log(Level.WARNING,"intake.yml 格式不正确");
             }else {
                 LOGGER.log(Level.WARNING,"请指定配置文件, shell>java -jar intake.jar /data/intake/etc/intake.yml");
             }
         }
 
 
-    public static Map<String,Map<String,String>> loadConfig(String[] args){
-        Map<String,Map<String,String>> config=null;
+    public static LinkedHashMap<String,Object> loadConfig(String[] args){
+        LinkedHashMap<String,Object> config=null;
         if(args.length > 0 && Files.exists(Paths.get(args[0]))) {
             try (InputStream is = new FileInputStream(Paths.get(args[0]).toFile())){
                 config = new Yaml().load(is);

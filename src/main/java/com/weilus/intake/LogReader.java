@@ -8,15 +8,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.weilus.intake.LogParserUtil.REG_LEVEL;
 
 /**
  * Created by liutq on 2019/3/22.
  */
 public class LogReader {
     static Logger LOGGER = Logger.getLogger(LogReader.class.getSimpleName());
+
+
+
     public static void readLastLine(Path log_path, Path logpospath, BiConsumer<List<String>,Integer> consumer){
         LOGGER.info("读取日志文件: "+log_path.getFileName());
         long start = readStartPos(logpospath),end=start;
@@ -32,7 +35,7 @@ public class LogReader {
                 lines = reader.lines().limit(300).collect(Collectors.toList());
                 if(lines.size() > 0) {
                     String lastLine = lines.get(lines.size() - 1);
-                    if (LogParserUtil.isExceptionLine(lastLine)) getLastExpetionLines(reader, lines);
+                    if (isErrorLevelLine(lastLine)) getLastExpetionLines(reader, lines);
                 }
                 Optional<Integer> op = lines.stream().map(line->line.length()+2).reduce((l1, l2)->l1+l2);
                 end = op.isPresent() ? end + op.get() : end;
@@ -55,8 +58,7 @@ public class LogReader {
         do{
             line = reader.readLine();
             lines.add(line);
-            level = LogParserUtil.getMatcher(REG_LEVEL,line);
-        }while (!("DEBUG".equalsIgnoreCase(level) || "INFO".equalsIgnoreCase(level) || "WARN".equalsIgnoreCase(level)));
+        }while (isExceptionStacktrace(line));
     }
 
     public static void writeEndPos(Path logpospath,Long end){
@@ -87,5 +89,35 @@ public class LogReader {
             e.printStackTrace();
         }
         return start;
+    }
+
+    public static boolean isErrorLevelLine(String line){
+        return "ERROR".equalsIgnoreCase(getLevel(line));
+    }
+
+    /**
+     * 获取日志消息Level
+     * @param line
+     * @return
+     */
+    public static String getLevel(String line){
+        Matcher m = Pattern.compile("\\s+(DEBUG|WARN|INFO|ERROR)\\s+").matcher(line);
+        if(m.find()){
+            try {
+                return m.group(1);
+            }catch (Exception e){}
+        }
+        return null;
+    }
+
+    /**
+     * 是否为异常栈信息
+     * @param line
+     * @return
+     */
+    public static boolean isExceptionStacktrace(String line){
+        String level = getLevel(line);
+        if(null == level)return true;
+        return false;
     }
 }

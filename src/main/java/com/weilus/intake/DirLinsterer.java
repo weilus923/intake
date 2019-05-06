@@ -27,19 +27,17 @@ public class DirLinsterer {
 
     /**
      * @param transforer 文件摄取 写出对象
-     * @param logDir     文件摄取的目录
-     * @param file       文件匹配的parrten  匹配的文件才执行摄取内容写出  eureka.log.*
-     * @param source     写出时标记来源
      */
-    public static void listener(LogTransforer transforer,String logDir,String file,String source) throws IOException{
-        String posDir = logDir.endsWith(File.separator) ? logDir+"pos/" : logDir+File.separator+"pos/";
-        Path logdir = Paths.get(logDir),posdir = Paths.get(posDir);
+    public static void listener(LogTransforer transforer,IntakeProperties properties) throws IOException{
+
+        String posDir = properties.getPath().endsWith(File.separator) ? properties.getPath()+"pos/" : properties.getPath()+File.separator+"pos/";
+        Path logdir = Paths.get(properties.getPath()),posdir = Paths.get(posDir);
         if(Files.notExists(logdir))Files.createDirectories(logdir);
         if(Files.notExists(posdir))Files.createDirectories(posdir);
 
-        listener(logDir,(event) -> {
+        listener(properties.getPath(),(event) -> {
             Thread.currentThread().setName(event.context().toString());
-            String logpath = getLogPath(logDir,event);
+            String logpath = getLogPath(properties.getPath(),event);
             Path logPosPath = Paths.get(posDir+"pos-"+event.context()+ ".data");
             // 摄取目标 被创建
             if(ENTRY_CREATE.name().equals(event.kind().name())){
@@ -48,21 +46,21 @@ public class DirLinsterer {
             // 摄取目标 存在新内容写入
             if(ENTRY_MODIFY.name().equals(event.kind().name())){
                 if(!LOCKS.containsKey(logpath))LOCKS.put(logpath,false);
-                String _source = source != null && source.length() >0 ? source : event.context().toString();
+                String _source = properties.getSource() != null && properties.getSource().length() >0 ? properties.getSource() : event.context().toString();
                 synchronized (LOCKS.get(logpath)){
-                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines,num) -> transforer.out(lines,_source));
+                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines,num) -> transforer.out(lines,_source,properties.getPattern()));
                     LOCKS.put(logpath,false);
                 }
             }
         },(event)->{
-            Path logPath = Paths.get(getLogPath(logDir,event));
+            Path logPath = Paths.get(getLogPath(properties.getPath(),event));
             if(logPath.toFile().isDirectory())return false;
             String fileName = event.context().toString();
             if(fileName.startsWith("pos-") || fileName.endsWith(".swp") || fileName.endsWith(".swx"))return false;
-            if(null != file){
-                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+file);
+            if(null != properties.getFile()){
+                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**\\"+properties.getFile());
                 boolean flag =  matcher.matches(logPath);
-                if(!flag)LOGGER.info("不符合["+file+"]格式: =>"+logPath.toString());
+                if(!flag)LOGGER.info("不符合["+properties.getFile()+"]格式: =>"+logPath.toString());
                 return flag;
             }
             return true;

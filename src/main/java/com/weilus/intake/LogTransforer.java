@@ -1,5 +1,6 @@
 package com.weilus.intake;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -7,5 +8,5 @@ import java.util.List;
  */
 public interface LogTransforer {
 
-    void out(List<String> lines,String source);
+    void out(List<String> lines, String source, LinkedHashMap<String,String> pattern);
 }
