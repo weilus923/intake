@@ -49,7 +49,6 @@ public class Application {
                                 ex.printStackTrace();
                             }
                         });
-                LOGGER.log(Level.WARNING,"intake.yml 格式不正确");
             }else {
                 LOGGER.log(Level.WARNING,"请指定配置文件, shell>java -jar intake.jar /data/intake/etc/intake.yml");
             }
