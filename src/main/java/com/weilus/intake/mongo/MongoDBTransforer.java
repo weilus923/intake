@@ -37,7 +37,6 @@ public class MongoDBTransforer implements LogTransforer {
     }
 
     private void out(List<Document> list) {
-        LOGGER.info("写出mongo==> "+list);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(mongoClientURI.getDatabase());
         MongoCollection collection = mongoDatabase.getCollection(this.collection);
         if(list.size() > 0)collection.insertMany(list);
