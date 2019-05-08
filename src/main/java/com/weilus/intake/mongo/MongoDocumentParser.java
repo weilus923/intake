@@ -73,7 +73,7 @@ public class MongoDocumentParser implements LogParser<Document> {
     }
     private Document parseLog(String line){
         try {
-            Document doc =  new Document();
+            Document doc =  new Document("source",properties.getSource());
             Matcher matcher = Pattern.compile(patterns).matcher(line);
             List<String> keys = new ArrayList<>(properties.getPattern().keySet());
             if(matcher.find()){

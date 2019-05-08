@@ -3,7 +3,7 @@ zuul:
   mongo: mongodb://weilua:weilus@192.168.198.128:27017/test
 #  collection: zuul  # collection default 'intake' may be create on mongoDB
   source: zuul
-  file: zuul.log.*
+  file: zuul.log*         # zuul.log and zuul.log.1 ...zuul.log.[n]
   time_format: yyyy-MM-dd HH:mm:ss.SSS
   pattern:
     time: "(^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\.\\d{3,3})\\s+"
