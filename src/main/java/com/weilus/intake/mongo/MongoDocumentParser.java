@@ -29,27 +29,6 @@ public class MongoDocumentParser implements LogParser<Document> {
         this.patterns = properties.getPattern().values().stream().reduce((p1,p2)->p1+p2).get();
     }
 
-    public Document parseLog(String line){
-        try {
-            Document doc =  new Document();
-            Matcher matcher = Pattern.compile(patterns).matcher(line);
-            List<String> keys = new ArrayList<>(properties.getPattern().keySet());
-            if(matcher.find()){
-                    for(int i = 1;i <= matcher.groupCount(); i++){
-                        String key = keys.get(i-1),value = matcher.group(i);
-                        if("time".equalsIgnoreCase(key))doc.append(key,properties.getDateFormat().parse(value));
-                        else  doc.append(key,value);
-                    }
-                    return doc;
-            }else {
-//                LOGGER.warning("log at \n"+line+"\n not match :\n"+patterns);
-            }
-        }catch (Exception e){
-            LOGGER.warning(e.getMessage());
-        }
-        return null;
-    }
-
     @Override
     public List<Document> parseLog(List<String> lines) {
         List<Document> documents = new ArrayList<>();
@@ -69,24 +48,46 @@ public class MongoDocumentParser implements LogParser<Document> {
         }
         return documents;
     }
-
-    public boolean isErrorLog(String line){
+    @Override
+    public boolean isErrorOrExceptionLog(String line){
         Document doc = parseLog(line);
+        if(doc == null)return true;
         return isErrorLog(doc);
     }
-
-    public boolean isErrorLog(Document doc){
-        if(doc != null && "ERROR".equalsIgnoreCase(String.valueOf(doc.get("level"))))return true;
-        return false;
-    }
-
+    @Override
     public boolean isExceptionLog(String line){
         Document doc = parseLog(line);
         return isExceptionLog(doc);
     }
 
-    public boolean isExceptionLog(Document doc){
+
+    private boolean isErrorLog(Document doc){
+        if(doc != null && "ERROR".equalsIgnoreCase(String.valueOf(doc.get("level"))))return true;
+        return false;
+    }
+
+    private boolean isExceptionLog(Document doc){
         if(doc == null)return true;
         return false;
+    }
+    private Document parseLog(String line){
+        try {
+            Document doc =  new Document();
+            Matcher matcher = Pattern.compile(patterns).matcher(line);
+            List<String> keys = new ArrayList<>(properties.getPattern().keySet());
+            if(matcher.find()){
+                for(int i = 1;i <= matcher.groupCount(); i++){
+                    String key = keys.get(i-1),value = matcher.group(i);
+                    if("time".equalsIgnoreCase(key))doc.append(key,properties.getDateFormat().parse(value));
+                    else  doc.append(key,value);
+                }
+                return doc;
+            }else {
+//                LOGGER.warning("log at \n"+line+"\n not match :\n"+patterns);
+            }
+        }catch (Exception e){
+            LOGGER.warning(e.getMessage());
+        }
+        return null;
     }
 }

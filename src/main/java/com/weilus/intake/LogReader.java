@@ -39,9 +39,9 @@ public class LogReader<T> {
             do {
                 batchNum++;
                 lines = reader.lines().limit(300).collect(Collectors.toList());
-                if(lines.size() > 0) {
+                if(!lines.isEmpty()) {
                     String lastLine = lines.get(lines.size() - 1);
-                    if (parser.isErrorLog(lastLine)) getLastExpetionLines(reader,lines);
+                    if (parser.isErrorOrExceptionLog(lastLine)) getLastExpetionLines(reader,lines);
                 }
                 Optional<Integer> op = lines.stream().map(line->line.length()+2).reduce((l1, l2)->l1+l2);
                 end = op.isPresent() ? end + op.get() : end;

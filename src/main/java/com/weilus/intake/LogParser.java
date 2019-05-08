@@ -11,11 +11,9 @@ import java.util.List;
  **/
 public interface LogParser<T> {
 
-    T parseLog(String line);
-
     List<T> parseLog(List<String> lines);
 
-    boolean isErrorLog(String line);
+    boolean isErrorOrExceptionLog(String line);
 
     boolean isExceptionLog(String line);
 
