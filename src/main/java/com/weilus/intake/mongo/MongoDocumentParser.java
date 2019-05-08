@@ -56,6 +56,7 @@ public class MongoDocumentParser implements LogParser<Document> {
     }
     @Override
     public boolean isExceptionLog(String line){
+        if(line == null)return false;
         Document doc = parseLog(line);
         return isExceptionLog(doc);
     }
