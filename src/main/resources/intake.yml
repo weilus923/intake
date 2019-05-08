@@ -8,12 +8,7 @@ zuul:
   pattern:
     time: "(^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}\\:\\d{2}\\:\\d{2}\\.\\d{3,3})\\s+"
     level: "(DEBUG|WARN|INFO|ERROR)\\s+"
-    selth: "\\[(.*?)\\]"
-    thread: ".*\\[\\s+(.*?)\\]"
+#    selth: "\\[(.*?)\\]"
+    thread: ".*\\[(.*?)\\]"
     logger: "\\s+(.*?)\\s+"
-    message: "\\:\\s+(.*?)\\\n$"
-order:
-  path: E:\data\logs
-  mongo: mongodb://weilua:weilus@192.168.198.128:27017/test
-  source: order
-  file: order.log.*
+    message: "\\:\\s+(.*?)$"

@@ -1,4 +1,4 @@
-package com.weilus.intake;
+package com.weilus.intake.conf;
 
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
@@ -17,9 +17,6 @@ public class IntakeProperties {
     private String source;
     private SimpleDateFormat dateFormat;
     private LinkedHashMap<String,String> pattern;
-
-    public IntakeProperties() {
-    }
 
     public IntakeProperties(String path, String file, String source,String timeFormat, LinkedHashMap<String, String> pattern) {
         this.path = path;

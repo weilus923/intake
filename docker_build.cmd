@@ -1,1 +1,1 @@
-mvn clean package docker:build -DdockerImageTags=1.0.0
+mvn clean package docker:build -DdockerImageTags=1.1.0

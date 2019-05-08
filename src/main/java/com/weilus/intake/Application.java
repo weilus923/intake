@@ -1,6 +1,8 @@
 package com.weilus.intake;
 
 
+import com.weilus.intake.conf.IntakeProperties;
+import com.weilus.intake.mongo.MongoDBTransforer;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;

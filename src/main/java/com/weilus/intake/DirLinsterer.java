@@ -1,5 +1,7 @@
 package com.weilus.intake;
 
+import com.weilus.intake.conf.IntakeProperties;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -45,9 +47,8 @@ public class DirLinsterer {
             // 摄取目标 存在新内容写入
             if(ENTRY_MODIFY.name().equals(event.kind().name())){
                 if(!LOCKS.containsKey(logpath))LOCKS.put(logpath,false);
-                String _source = properties.getSource() != null && properties.getSource().length() >0 ? properties.getSource() : event.context().toString();
                 synchronized (LOCKS.get(logpath)){
-                    LogReader.readLastLine(Paths.get(logpath), logPosPath, (lines,num) -> transforer.out(lines));
+                    transforer.readAndWrite(Paths.get(logpath), logPosPath);
                     LOCKS.put(logpath,false);
                 }
             }
